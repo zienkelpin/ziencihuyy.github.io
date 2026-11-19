@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZIEN CIHUYY</title>
+</head>
+<body>
+  <h1>Selamat datang!</h1>
+  <p>Website absen code.</p>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absensi Sekolah dengan Barcode</title>
+<style>
+:root{--biru:#1456a0;--biru2:#eaf2ff;--hijau:#16834a;--merah:#b42318;--abu:#64748b}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#172033}
+header{background:linear-gradient(120deg,#124b91,#2477c8);color:white;padding:24px 16px;text-align:center}
+header h1{margin:0 0 7px;font-size:25px}header p{margin:0;font-size:14px;opacity:.9}
+main{max-width:1000px;margin:20px auto;padding:0 14px}
+.card{background:white;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 3px 14px #152b4a12}
+h2{font-size:19px;margin:0 0 14px;color:#163d70}
+.row{display:flex;gap:10px;flex-wrap:wrap}.field{flex:1;min-width:180px}
+label{display:block;font-weight:bold;font-size:13px;margin:0 0 6px}
+input,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px;background:white}
+button{border:0;border-radius:9px;padding:12px 16px;font-size:14px;font-weight:bold;cursor:pointer}
+.primary{background:var(--biru);color:white}.green{background:var(--hijau);color:white}.red{background:#b42318;color:white}.light{background:var(--biru2);color:var(--biru)}button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.notice{font-size:13px;color:var(--abu);line-height:1.5;margin-top:9px}
+#reader{width:100%;max-width:520px;margin:12px auto 0;overflow:hidden;border-radius:10px}
+.status{padding:12px;border-radius:9px;margin-top:12px;background:#f1f5f9;font-size:14px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#f3f7ff;border-radius:10px;padding:13px;text-align:center}.stat strong{display:block;font-size:25px;color:var(--biru)}.stat span{font-size:12px;color:var(--abu)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}th,td{padding:10px;border-bottom:1px solid #e5eaf1;text-align:left}th{background:#f5f8fc;color:#334155}
+.tablewrap{overflow-x:auto}.tag{padding:4px 8px;border-radius:20px;background:#e8f7ee;color:#167044;font-weight:bold;font-size:11px}
+.empty{text-align:center;color:var(--abu);padding:20px}
+footer{text-align:center;color:#64748b;font-size:12px;padding:10px 15px 25px}
+@media(max-width:560px){header h1{font-size:21px}.stats{grid-template-columns:repeat(3,1fr)}.card{padding:14px}.actions button{flex:1}}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABSENSI SISWA BERBASIS BARCODE</h1>
+  <p>Absensi kedatangan dan kepulangan siswa</p>
+</header>
+<main>
+  <section class="card">
+    <h2>1. Data Siswa</h2>
+    <div class="row">
+      <div class="field"><label for="nis">NIS / Kode Barcode</label><input id="nis" placeholder="Contoh: 2026001"></div>
+      <div class="field"><label for="nama">Nama Siswa</label><input id="nama" placeholder="Nama lengkap siswa"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="addStudent">Simpan Data Siswa</button>
+      <button class="light" id="showStudents">Lihat Data Siswa</button>
+    </div>
+    <p class="notice">Daftarkan setiap siswa satu kali. Kode barcode/QR yang digunakan harus berisi NIS atau kode yang sama dengan data siswa.</p>
+    <div id="studentList" class="status" hidden></div>
+  </section>
+
+  <section class="card">
+    <h2>2. Lakukan Absensi</h2>
+    <div class="row">
+      <div class="field"><label for="jenis">Jenis Absensi</label>
+        <select id="jenis"><option value="Datang">Datang ke Sekolah</option><option value="Pulang">Pulang Sekolah</option></select>
+      </div>
+      <div class="field"><label for="kodeScan">NIS / Kode Siswa</label><input id="kodeScan" placeholder="Scan barcode atau ketik kode"></div>
+    </div>
+    <div class="actions">
+      <button class="green" id="simpanAbsensi">Simpan Absensi</button>
+      <button class="primary" id="startScan">Buka Kamera untuk Scan</button>
+      <button class="light" id="stopScan" disabled>Hentikan Kamera</button>
+    </div>
+    <div id="reader"></div>
+    <div id="pesan" class="status" role="status">Pilih jenis absensi, lalu scan barcode siswa atau ketik NIS.</div>
+    <p class="notice">Catatan: fitur kamera memerlukan izin kamera dan biasanya berjalan melalui HTTPS atau localhost. Jika kamera tidak didukung, gunakan alat scan barcode USB atau ketik NIS pada kolom di atas.</p>
+  </section>
+
+  <section class="card">
+    <h2>3. Rekap Absensi Hari Ini</h2>
+    <div class="stats">
+      <div class="stat"><strong id="totalSiswa">0</strong><span>Siswa terdaftar</span></div>
+      <div class="stat"><strong id="totalDatang">0</strong><span>Sudah datang</span></div>
+      <div class="stat"><strong id="totalPulang">0</strong><span>Sudah pulang</span></div>
+    </div>
+    <div class="row" style="margin-top:14px;align-items:end">
+      <div class="field"><label for="filterTanggal">Tanggal rekap</label><input type="date" id="filterTanggal"></div>
+      <div class="field"><label for="cari">Cari siswa</label><input id="cari" placeholder="Ketik nama atau NIS"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="exportCsv">Unduh Rekap CSV / Excel</button>
+      <button class="light" id="refresh">Perbarui Tampilan</button>
+    </div>
+    <div class="tablewrap" style="margin-top:14px">
+      <table><thead><tr><th>No.</th><th>NIS</th><th>Nama</th><th>Jam Datang</th><th>Jam Pulang</th><th>Status</th></tr></thead><tbody id="rekap"></tbody></table>
+    </div>
+  </section>
+  <section class="card">
+    <h2>4. Pengelolaan Data</h2>
+    <p class="notice">Data tersimpan di browser/perangkat ini. Ekspor rekap secara berkala sebagai cadangan. Menghapus data tidak dapat dibatalkan.</p>
+    <div class="actions"><button class="red" id="hapusAbsensi">Hapus Semua Data Absensi</button><button class="red" id="hapusSemua">Hapus Semua Data Siswa dan Absensi</button></div>
+  </section>
+</main>
+<footer>Absensi Sekolah • Simpan dan cadangkan data secara berkala</footer>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+const KEY_SISWA='absensi_sekolah_siswa_v1', KEY_ABSEN='absensi_sekolah_catatan_v1';
+const $=id=>document.getElementById(id);
+const baca=(k)=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}};
+const simpan=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const tanggalHariIni=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const jamSekarang=()=>new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+let scanner=null, sedangScan=false;
+$('filterTanggal').value=tanggalHariIni();
+
+function pesan(teks,baik=false){$('pesan').textContent=teks;$('pesan').style.background=baik?'#e9f8ef':'#f1f5f9';$('pesan').style.color=baik?'#166534':'#334155'}
+function render(){
+ const siswa=baca(KEY_SISWA), absen=baca(KEY_ABSEN), t=$('filterTanggal').value||tanggalHariIni(), q=$('cari').value.toLowerCase();
+ const hari=absen.filter(a=>a.tanggal===t);
+ $('totalSiswa').textContent=siswa.length;
+ $('totalDatang').textContent=hari.filter(a=>a.datang).length;
+ $('totalPulang').textContent=hari.filter(a=>a.pulang).length;
+ const rows=siswa.filter(s=>(s.nama+' '+s.nis).toLowerCase().includes(q));
+ $('rekap').innerHTML=rows.length?rows.map((s,i)=>{
+  const a=hari.find(x=>x.nis===s.nis);
+  return `<tr><td>${i+1}</td><td>${esc(s.nis)}</td><td>${esc(s.nama)}</td><td>${a?.datang||'-'}</td><td>${a?.pulang||'-'}</td><td>${a?.pulang?'Lengkap':a?.datang?'Sudah datang':'Belum hadir'}</td></tr>`;
+ }).join(''):'<tr><td colspan="6" class="empty">Belum ada data siswa atau hasil pencarian tidak ditemukan.</td></tr>';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('addStudent').onclick=()=>{
+ const nis=$('nis').value.trim(),nama=$('nama').value.trim();
+ if(!nis||!nama){alert('Isi NIS/kode dan nama siswa terlebih dahulu.');return}
+ let data=baca(KEY_SISWA);
+ if(data.some(s=>s.nis===nis)){alert('NIS/kode tersebut sudah terdaftar.');return}
+ data.push({nis,nama});simpan(KEY_SISWA,data);$('nis').value='';$('nama').value='';render();alert('Data siswa berhasil disimpan.');
+};
+$('showStudents').onclick=()=>{
+ const data=baca(KEY_SISWA);$('studentList').hidden=false;
+ $('studentList').innerHTML=data.length?'<b>Daftar siswa:</b><br>'+data.map((s,i)=>`${i+1}. ${esc(s.nis)} — ${esc(s.nama)}`).join('<br>'):'Belum ada siswa terdaftar.';
+};
+function catat(){
+ const nis=$('kodeScan').value.trim();if(!nis){pesan('Masukkan atau scan NIS/kode siswa terlebih dahulu.');return}
+ const siswa=baca(KEY_SISWA).find(s=>s.nis===nis);
+ if(!siswa){pesan('Kode '+nis+' belum terdaftar. Daftarkan siswa pada bagian Data Siswa terlebih dahulu.');return}
+ const tanggal=tanggalHariIni(), jenis=$('jenis').value, data=baca(KEY_ABSEN);
+ let a=data.find(x=>x.nis===nis&&x.tanggal===tanggal);
+ if(!a){a={nis,nama:siswa.nama,tanggal,datang:'',pulang:''};data.push(a)}
+ if(jenis==='Datang'){
+  if(a.datang){pesan(siswa.nama+' sudah tercatat datang pada pukul '+a.datang+'.');return}
+  a.datang=jamSekarang();
+ }else{
+  if(!a.datang){pesan('Absensi datang '+siswa.nama+' belum tercatat. Catat kedatangan terlebih dahulu.');return}
+  if(a.pulang){pesan(siswa.nama+' sudah tercatat pulang pada pukul '+a.pulang+'.');return}
+  a.pulang=jamSekarang();
+ }
+ simpan(KEY_ABSEN,data);pesan('Berhasil! '+siswa.nama+' — '+jenis+' pukul '+(jenis==='Datang'?a.datang:a.pulang)+'.',true);
+ $('kodeScan').value='';render();
+}
+$('simpanAbsensi').onclick=catat;
+$('kodeScan').addEventListener('keydown',e=>{if(e.key==='Enter')catat()});
+$('filterTanggal').onchange=render;$('cari').oninput=render;$('refresh').onclick=render;
+
+$('startScan').onclick=async()=>{
+ if(!window.Html5Qrcode){pesan('Pustaka pemindai tidak berhasil dimuat. Periksa koneksi internet, lalu muat ulang halaman.');return}
+ try{
+  if(!scanner)scanner=new Html5Qrcode('reader');
+  await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:180}},decoded=>{
+   $('kodeScan').value=decoded.trim();catat();
+  },()=>{});
+  sedangScan=true;$('startScan').disabled=true;$('stopScan').disabled=false;pesan('Kamera aktif. Arahkan barcode/QR siswa ke kamera.');
+ }catch(e){pesan('Kamera tidak dapat dibuka. Izinkan akses kamera atau gunakan scanner USB/ketik NIS. '+e)}
+};
+$('stopScan').onclick=async()=>{
+ if(scanner&&sedangScan){try{await scanner.stop();}catch(e){}sedangScan=false}
+ $('startScan').disabled=false;$('stopScan').disabled=true;pesan('Kamera dihentikan.');
+};
+$('exportCsv').onclick=()=>{
+ const t=$('filterTanggal').value||tanggalHariIni(),siswa=baca(KEY_SISWA),absen=baca(KEY_ABSEN).filter(a=>a.tanggal===t);
+ const rows=[['Tanggal','NIS','Nama','Jam Datang','Jam Pulang','Status']];
+ siswa.forEach(s=>{const a=absen.find(x=>x.nis===s.nis);rows.push([t,s.nis,s.nama,a?.datang||'',a?.pulang||'',a?.pulang?'Lengkap':a?.datang?'Sudah datang':'Belum hadir'])});
+ const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='rekap-absensi-'+t+'.csv';link.click();URL.revokeObjectURL(url);
+};
+$('hapusAbsensi').onclick=()=>{if(confirm('Yakin menghapus SEMUA catatan absensi?')){simpan(KEY_ABSEN,[]);render();pesan('Semua catatan absensi telah dihapus.',true)}};
+$('hapusSemua').onclick=()=>{if(confirm('Yakin menghapus semua data siswa dan seluruh catatan absensi? Data tidak dapat dikembalikan.')){simpan(KEY_SISWA,[]);simpan(KEY_ABSEN,[]);render();$('studentList').hidden=true;pesan('Semua data telah dihapus.',true)}};
+render();
+</script>
+</body>
+</html>
